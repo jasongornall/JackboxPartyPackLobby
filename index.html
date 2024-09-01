@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embedded Twitch Player</title>
+    <script src="https://embed.twitch.tv/embed/v1.js"></script>
+    <meta http-equiv="default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';">
+</head>
+<body>
+    <a id="twitch-connect" href="#">Connect with Twitch</a>
+    <script>
+        const addDetection = {};
+        function setUpTwitchLink() {
+            const link = document.getElementById('twitch-connect');
+            link.setAttribute('href', `https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=9488lwnmthz58bsdoete068lhbzdgt&redirect_uri=${window.location.origin}`);
+        }
+        async function getStreams(accessToken, client_id, cursor='', totalStreams=[]) {
+            const jackboc = '493174';
+            const LoL = '21779'
+            const streamsUrl = `https://api.twitch.tv/helix/streams`;
+
+            try {
+                const response = await fetch(`${streamsUrl}?` + new URLSearchParams({
+                    game_id: '493174',
+                    first: 100,
+                    language: 'en',
+                    type: 'live',
+                    after: cursor
+                }), {
+                    headers: {
+                        'Client-ID': client_id,
+                        'Authorization': `Bearer ${accessToken}`,
+                    }
+                });
+                
+                const json = await response.json();
+                const newStreams = json.data;
+                totalStreams = totalStreams.concat(newStreams);
+                debugger;
+                const getMore = newStreams.length && newStreams[newStreams.length - 1].viewer_count > 3 && json.pagination.cursor
+                if (getMore) {
+                    return getStreams(accessToken,client_id, json.pagination.cursor, totalStreams)
+                } else {
+                    return totalStreams;
+                }
+            } catch (error) {
+                console.error('Error getting streams:', error);
+                throw error;
+            }
+        }
+        async function displayStreams(streams) {
+            for (let index = 0; index < streams.length; index++) {
+                const element = streams[index];
+                const id = `twitch-embed-${index}`;
+                const span = document.createElement('span');
+                // Set the id attribute
+                span.id = id;
+                // Append the span element to the body
+                document.body.appendChild(span);
+                document.getElementById('videos').appendChild(span);
+                const embed = new Twitch.Embed(id, {
+                    height: 360,
+                    channel: element.user_name,
+                    muted: true,
+                    layout: 'video',
+                    parent: ["localhost", "127.0.0.1"]
+                });
+                console.log(embed)
+                await new Promise((resolve) => {    
+                    embed.addEventListener(Twitch.Embed.VIDEO_READY, () => {
+                        embed.setQuality("160p"); // Change to your desired quality (e.g., "720p", "480p", "360p", etc.)
+                    });
+                    embed.addEventListener(Twitch.Embed.PLAYING, () => {
+                        resolve();
+                    });                
+                })
+                
+               
+            }
+          
+        }
+        async function loader(accessToken) {
+            const client_id = '9488lwnmthz58bsdoete068lhbzdgt'
+            const streams = await getStreams(accessToken, client_id)
+            await displayStreams(streams)
+            console.log(JSON.stringify(streams,null, 2));
+        }
+
+        window.onload = async function() {
+            // Get the full URL
+            const url = window.location.href;
+            setUpTwitchLink();
+            // Find the position of the access_token
+            const accessTokenIndex = url.indexOf("access_token=");
+
+            if (accessTokenIndex !== -1) {
+                // Extract the access_token value
+                const accessToken = url.substring(accessTokenIndex + 13, url.indexOf("&", accessTokenIndex));
+                loader(accessToken);
+
+
+                console.log("Access Token:", accessToken);
+
+            } else {
+                console.log("Access Token not found in the URL.");
+            }
+        };
+
+       
+
+
+    </script>
+    <div id="videos" style="padding-bottom: 56.25%; position: relative;">
+
+    </div>
+</body>
+</html>

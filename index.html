@@ -46,7 +46,6 @@
             width: 100%;
             aspect-ratio: 16 / 9;
             height: auto;
-            pointer-events: none;
         }
     </style>
     <a id="twitch-connect" href="#">Connect with Twitch</a>
@@ -108,7 +107,8 @@
                 const infoDiv = document.createElement('div');
                 infoDiv.className="info-wrapper"
                 infoDiv.innerHTML = `
-                    <div>Player count: ${element.viewer_count} </div>
+                    <div>Name: ${element.user_name}</div>
+                    <div>Player count: ${element.viewer_count}</div>
                     <div class="title">Title: ${element.title}</div>
                     <a href="https://www.twitch.tv/${element.user_name}" target="_blank">Jump to Twitch</button>
                 `;
@@ -129,7 +129,11 @@
                         embed.setQuality("160p"); // Change to your desired quality (e.g., "720p", "480p", "360p", etc.)
                     });
                     embed.addEventListener(Twitch.Embed.PLAYING, () => {
-                      resolve();                  
+                      resolve();
+
+                    // started playing turn off
+                    //   const iframe = document.getElementById(id).querySelector('iframe')
+                    //   iframe.style.pointerEvents = 'none;'                  
                     });                
                 })
                 

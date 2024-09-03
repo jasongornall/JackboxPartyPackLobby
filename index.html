@@ -90,10 +90,38 @@
         }
         async function displayStreams(streams) {
             let count = 50;
+            const videoMap = {}
+
+            // auto pause and play as videos are loading to speed up the process
+            // fancy sourcey to allow all these videos to exist on the browser.
+            // auto plays and pauses as a user scrolls (keeps offscreen paused)
+            document.addEventListener("scroll", (event) => {
+                debugger;
+                const streamsIds = Object.keys(videoMap)
+                streamsIds.forEach((streamId, index) => {
+                    const embed = videoMap[streamId];
+                    const embedElement = document.getElementById(streamId);
+                    const rect = embedElement.getBoundingClientRect();
+
+                    if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
+                        // Partially in the viewport
+                        if (embed.getPlayerState() !== Twitch.Player.PLAYING) {
+                            console.log('play', streamId)
+                            embed.play();
+                        }
+                    } else if (rect.bottom < 0 || rect.top > window.innerHeight) {
+                        // Fully outside the viewport
+                        if (embed.getPlayerState() !== Twitch.Player.PAUSED) {
+                            console.log('pause', streamId)
+                            embed.pause();
+                        }
+                    }
+                });
+            });
 
             for (let index = 0; index < streams.length; index++) {
                 const element = streams[index];
-                const id = `twitch-embed-${index}`;
+                const id = `twitch-embed-${element.id}`;
                 const span = document.createElement('span');
                 // Set the id attribute
                 span.id = id;
@@ -130,6 +158,7 @@
                         embed.setQuality("160p"); // Change to your desired quality (e.g., "720p", "480p", "360p", etc.)
                     });
                     embed.addEventListener(Twitch.Embed.PLAYING, () => {
+                      videoMap[id] = embed;
                       resolve();
 
                     // started playing turn off
@@ -137,9 +166,9 @@
                     //   iframe.style.pointerEvents = 'none;'                  
                     });                
                 })
-                
-               
             }
+            debugger;
+            
           
         }
         async function loader(accessToken) {

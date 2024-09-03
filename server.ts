@@ -1,14 +1,14 @@
 import express from 'express';
 import path from 'path';
-// import fs from 'fs';
+import fs from 'fs';
 import https from 'https';
 
 const app = express();
 const PORT = 3000;
 
 const options = {
-  // key: fs.readFileSync('server.key'),
-  // cert: fs.readFileSync('server.cert')
+  key: fs.readFileSync('server.key'),
+  cert: fs.readFileSync('server.cert')
 };
 
 app.use(express.static(path.join(__dirname)));

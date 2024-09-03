@@ -21,9 +21,7 @@
         }
         .vod-wrapper {
             display:inline-block;
-            padding:10px;
-            border-width: 1px 1px 0 1px;
-            border: 1px dashed green;
+            border-bottom: 10px dashed green;
         }
         .info-wrapper {
             display: flex;
@@ -109,20 +107,18 @@
                     const embed = videoMap[streamId];
                     const embedElement = document.getElementById(streamId);
                     const rect = embedElement.getBoundingClientRect();
-                    const offscreenMultiplier = 2
+                    const offscreenMultiplier = 4
                     console.log(rect.top,rect.height,rect.bottom, window.innerHeight  )
                     if (rect.top >= -1 * offscreenMultiplier * rect.height && rect.bottom <= window.innerHeight + offscreenMultiplier * rect.height) {
                         // Partially in the viewport
                         if (embed.isPaused()) {
                             console.log('play', streamId)
-                            debugger;
                             embed.play();
                         }
                     } else if (rect.bottom < -1 * offscreenMultiplier * rect.height || rect.top > window.innerHeight + offscreenMultiplier * rect.height) {
                         // Fully outside the viewport
                         if (!embed.isPaused()) {
                             console.log('pause', streamId)
-                            debugger;
                             embed.pause();
                         }
                     }
@@ -151,10 +147,10 @@
                     <div class="title">Title: ${element.title}</div>
                     <a href="https://www.twitch.tv/${element.user_name}" target="_blank">Jump to Twitch</button>
                 `;
-                div.appendChild(infoDiv);
+                div2.appendChild(infoDiv);
                 // idea for later pause and play based on viewport scroll
                 // Append the span element to the body
-                document.getElementById('videos').appendChild(div);
+                document.getElementById('videos').appendChild(div2);
                 const embed = new Twitch.Embed(id, {
                     height: 360,
                     channel: element.user_name,

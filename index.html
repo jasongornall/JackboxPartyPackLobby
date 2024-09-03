@@ -13,7 +13,7 @@
         const addDetection = {};
         function setUpTwitchLink() {
             const link = document.getElementById('twitch-connect');
-            link.setAttribute('href', `https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=9488lwnmthz58bsdoete068lhbzdgt&redirect_uri=${window.location.origin}`);
+            link.setAttribute('href', `https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=9488lwnmthz58bsdoete068lhbzdgt&redirect_uri=${window.location.origin + window.location.pathname}`);
         }
         async function getStreams(accessToken, client_id, cursor='', totalStreams=[]) {
             const jackboc = '493174';

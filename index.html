@@ -48,15 +48,27 @@
         .title {
             font-size: 15px;
         }
+        .refresh-button {
+            font-size: 40px;
+            padding: 10px;
+        }
         #videos {
             display: flex;
             flex-direction: column;
+        }
+        #options {
+            margin: 0 auto;
+            text-align: center;
+            padding: 20px;
+            border-bottom: 10px dashed green;
+        }
+        #options input {
+            font-size: 40px;
         }
         iframe {
             width: 100%;
             aspect-ratio: 16 / 9;
             height: auto;
-            pointer-events: none;
             line-height: 0px;
         }
         .iframe-wrapper {
@@ -78,8 +90,56 @@
     </style>
     <a id="twitch-connect" href="#">Connect with Twitch</a>
     <div id="logged-in"> Logged in as:<span id="user-name"></span> <div><button id="logout">logout</button></div></div> 
+    <div id="options">
+        <p>
+            <label for="lowerBound">Lower Bound:</label>
+            <input type="number" id="lowerBound" min="1" max="100">
+        </p>
+        <p>
+            <label for="upperBound">Upper Bound:</label>
+            <input type="number" id="upperBound" min="1" max="100">
+        </p>
+        <p>
+            <button class="refresh-button" onclick="location.reload()">
+                &#x21bb; <!-- Unicode for refresh icon -->
+            </button>
+        </p>
+    </div>
     <script>
-        const addDetection = {};
+        function filterOptions(streams) {
+            const lowerBound = document.getElementById('lowerBound');
+            const upperBound = document.getElementById('upperBound');
+            return streams.filter((stream) => {
+                if (stream.viewer_count > parseInt(upperBound.value, 10)) {
+                    return false
+                } else if (stream.viewer_count < parseInt(lowerBound.value, 10)) {
+                    return false
+                }
+                return true;
+            })
+        }
+        function setupOptions() {
+            const lowerBound = document.getElementById('lowerBound');
+            const upperBound = document.getElementById('upperBound');
+            lowerBound.value = localStorage.getItem('lowerBound') || 1;
+            upperBound.value = localStorage.getItem('upperBound') || 100;
+
+            function updateBounds() {
+                const lowerValue = parseInt(lowerBound.value);
+                const upperValue = parseInt(upperBound.value);
+
+                if (lowerValue > upperValue) {
+                    alert('Lower bound cannot be greater than upper bound.');
+                    lowerBound.value = upperValue;
+                }
+
+                // Save values to localStorage
+                localStorage.setItem('lowerBound', lowerBound.value);
+                localStorage.setItem('upperBound', upperBound.value);
+            }
+            lowerBound.addEventListener('input', updateBounds);
+            upperBound.addEventListener('input', updateBounds);
+        }
         function setUpTwitchLink() {
             const link = document.getElementById('twitch-connect');
             link.setAttribute('href', `https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=9488lwnmthz58bsdoete068lhbzdgt&redirect_uri=${window.location.origin + window.location.pathname}`);
@@ -228,13 +288,15 @@
             const client_id = '9488lwnmthz58bsdoete068lhbzdgt'
             await showUser(accessToken, client_id)
             const streams = await getStreams(accessToken, client_id)
-            await displayStreams(streams)
+            const filteredStreams = filterOptions(streams)
+            await displayStreams(filteredStreams)
         }
 
         window.onload = async function() {
             // Get the full URL
             const url = window.location.href;
             setUpTwitchLink();
+            setupOptions();
             // Find the position of the access_token
             const accessTokenIndex = url.indexOf("access_token=");
             

@@ -8,7 +8,7 @@ const PORT = 3000;
 
 const options = {
   key: fs.readFileSync('server.key'),
-  cert: fs.readFileSync('server.cert')
+  cert: fs.readFileSync('server.crt')
 };
 
 app.use(express.static(path.join(__dirname)));

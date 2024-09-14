@@ -55,6 +55,7 @@
         #videos {
             display: flex;
             flex-direction: column;
+            padding-bottom: 54px;
         }
         #options {
             margin: 0 auto;
@@ -87,6 +88,19 @@
         #logged-in.show {
             display: block;
         }
+        #last-click.show {
+            display: flex;
+        }
+        #last-click {
+            justify-content: space-between;
+            background: lightblue;
+            position: fixed;
+            bottom: 0px;
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            display:none;
+        }
     </style>
     <a id="twitch-connect" href="#">Connect with Twitch</a>
     <div id="logged-in"> Logged in as:<span id="user-name"></span> <div><button id="logout">logout</button></div></div> 
@@ -106,6 +120,9 @@
         </p>
     </div>
     <script>
+        function closePlayer(id) {
+            document.getElementById(id).remove();
+        }
         function Perf() {
             document.addEventListener("visibilitychange", function() {
                 document.getElementById('videos').remove();
@@ -182,6 +199,38 @@
                 throw error;
             }
         }
+        function updateHeader() {
+            const lastClickData = localStorage.getItem('last-click')
+
+
+            document.querySelector('#last-click').classList.toggle('show',!!lastClickData)
+            if (lastClickData) {
+                let username;
+                let id;
+                try {
+                    const json = JSON.parse(lastClickData);
+                    username = json.username;
+                    id = json.id;
+                } catch {
+                    localStorage.removeItem('last-click')
+                    updateHeader();
+                    return;
+                }
+                document.querySelector('#last-click .name').textContent = username;
+                document.querySelector('#last-click a').setAttribute('href', `#${id}`);
+                document.querySelector('#last-click .close').addEventListener('click', () => {
+                    localStorage.removeItem('last-click')
+                    updateHeader();
+                })
+            }
+        }
+        function clickLink(username, id) {
+            debugger;
+            localStorage.setItem('last-click', JSON.stringify({username, id}))
+            updateHeader();
+            return true;
+           
+        }
         async function displayStreams(streams) {
             let count = 50;
             const videoMap = {}
@@ -194,6 +243,10 @@
                 streamsIds.forEach((streamId, index) => {
                     const embed = videoMap[streamId];
                     const embedElement = document.getElementById(streamId);
+                    if (!embedElement){
+                        delete videoMap[streamId];
+                        return;
+                    }
                     const rect = embedElement.getBoundingClientRect();
                     const offscreenMultiplier = 2
                     if (rect.top >= -1 * offscreenMultiplier * window.innerHeight && rect.bottom <= window.innerHeight + offscreenMultiplier * window.innerHeight) {
@@ -211,7 +264,7 @@
                     }
                 });
             });
-
+           
             for (let index = 0; index < streams.length; index++) {
                 const element = streams[index];
                 const id = `twitch-embed-${element.id}`;
@@ -223,6 +276,7 @@
                 // a little color
                 const div2 = document.createElement('div');
                 div2.className = 'vod-wrapper'
+                div2.id = `${id}-wrapper`
                 div2.appendChild(div);
 
                 // cotent of the video
@@ -233,7 +287,8 @@
                     <div>Name: ${element.user_name}</div>
                     <div>Player count: ${element.viewer_count}</div>
                     <div class="title">Title: ${element.title}</div>
-                    <a href="https://www.twitch.tv/${element.user_name}" target="_blank">Jump to Twitch</button>
+                    <a href="https://www.twitch.tv/${element.user_name}" target="_blank" onclick="return clickLink('${element.user_name}', '${div2.id}');">Jump to Twitch</a>
+                    <div class="close-player"  style="align-self: flex-end;" onclick="closePlayer('${div2.id}')">Close Player</div>
                 `;
                 div2.appendChild(infoDiv);
                 // idea for later pause and play based on viewport scroll
@@ -292,6 +347,7 @@
         async function loader(accessToken) {
             const client_id = '9488lwnmthz58bsdoete068lhbzdgt'
             await showUser(accessToken, client_id)
+            updateHeader();
             const streams = await getStreams(accessToken, client_id)
             const filteredStreams = filterOptions(streams)
             await displayStreams(filteredStreams)
@@ -323,5 +379,10 @@
 
     </script>
     <div id="videos"></div>
+    <div id="last-click">
+        <a href="#"> Jump to </a>
+        <div class="name"></div> 
+        <div class="close">X</div>
+    </div>
 </body>
 </html>

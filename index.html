@@ -122,6 +122,8 @@
     <script>
         function closePlayer(id) {
             document.getElementById(id).remove();
+            document.dispatchEvent(new CustomEvent('scroll'))
+
         }
         function Perf() {
             document.addEventListener("visibilitychange", function() {

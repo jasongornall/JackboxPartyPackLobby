@@ -152,11 +152,6 @@
                 const lowerValue = parseInt(lowerBound.value);
                 const upperValue = parseInt(upperBound.value);
 
-                if (lowerValue > upperValue) {
-                    alert('Lower bound cannot be greater than upper bound.');
-                    lowerBound.value = upperValue;
-                }
-
                 // Save values to localStorage
                 localStorage.setItem('lowerBound', lowerBound.value);
                 localStorage.setItem('upperBound', upperBound.value);
